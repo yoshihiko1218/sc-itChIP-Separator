@@ -117,75 +117,75 @@ def Separate_itChip(out_prefix,outfolder,f_filename,r_filename,f_ref,r_ref,start
         pd.DataFrame(r_list).iloc[allindexes].to_csv(outfolder+'/'+out_prefix+'_'+key+'_R2.fastq',header=False,index=False,sep='\t')
 
 
+def main():
+    parser = argparse.ArgumentParser()
+    optional = parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    parser._action_groups.append(optional)
+    required.add_argument("-f", "--forward", dest="f_filename",
+                        help="forward fq.gz file", metavar="F_FILE",required=True)
+    required.add_argument("-r", "--reverse", dest="r_filename",
+                        help="reverse fq.gz file", metavar="R_FILE", required=True)
+    required.add_argument("-p", "--prefix", dest="out_prefix",
+                        help="prefix of output file", metavar="PREFIX", required=True)
+    required.add_argument("-o", "--outfolder", dest="outfolder",
+                        help="output folder", metavar="OUT_FOLDER", required=True)
 
-parser = argparse.ArgumentParser()
-optional = parser._action_groups.pop()
-required = parser.add_argument_group('required arguments')
-parser._action_groups.append(optional)
-required.add_argument("-f", "--forward", dest="f_filename",
-                    help="forward fq.gz file", metavar="F_FILE",required=True)
-required.add_argument("-r", "--reverse", dest="r_filename",
-                    help="reverse fq.gz file", metavar="R_FILE", required=True)
-required.add_argument("-p", "--prefix", dest="out_prefix",
-                    help="prefix of output file", metavar="PREFIX", required=True)
-required.add_argument("-o", "--outfolder", dest="outfolder",
-                    help="output folder", metavar="OUT_FOLDER", required=True)
+    optional.add_argument("-if", "--index_forward", dest="index_forward",
+                        help="input file for list of forward index", metavar="F_INDEX_FILE")
+    optional.add_argument("-ir", "--index_reverse", dest="index_reverse",
+                        help="input file for list of reverse index", metavar="R_INDEX_FILE")
 
-optional.add_argument("-if", "--index_forward", dest="index_forward",
-                    help="input file for list of forward index", metavar="F_INDEX_FILE")
-optional.add_argument("-ir", "--index_reverse", dest="index_reverse",
-                    help="input file for list of reverse index", metavar="R_INDEX_FILE")
+    optional.add_argument("-sf", "--start_forward", dest="start_forward",
+                        help="start position of forward index(0 based). default: 21", metavar="START_FORWARD")
+    optional.add_argument("-sr", "--start_reverse", dest="start_reverse",
+                        help="start position of reverse index(0 based). default: 27", metavar="START_REVERSE")
 
-optional.add_argument("-sf", "--start_forward", dest="start_forward",
-                    help="start position of forward index(0 based). default: 21", metavar="START_FORWARD")
-optional.add_argument("-sr", "--start_reverse", dest="start_reverse",
-                    help="start position of reverse index(0 based). default: 27", metavar="START_REVERSE")
+    optional.add_argument("-tf", "--thresh_forward", dest="thresh_forward",
+                        help="threshold for forward index matching(inclusive). default: 2", metavar="THRESH_FORWARD")
+    optional.add_argument("-tr", "--thresh_reverse", dest="thresh_reverse",
+                        help="threshold for reverse index matching(inclusive). default: 2", metavar="THRESH_REVERSE")
 
-optional.add_argument("-tf", "--thresh_forward", dest="thresh_forward",
-                    help="threshold for forward index matching(inclusive). default: 2", metavar="THRESH_FORWARD")
-optional.add_argument("-tr", "--thresh_reverse", dest="thresh_reverse",
-                    help="threshold for reverse index matching(inclusive). default: 2", metavar="THRESH_REVERSE")
+    optional.add_argument("-rg", "--range", dest="range",
+                        help="size of range that check index match. default: 2", metavar="RANGE")
 
-optional.add_argument("-rg", "--range", dest="range",
-                    help="size of range that check index match. default: 2", metavar="RANGE")
+    args = parser.parse_args()
+    args = vars(args)
 
-args = parser.parse_args()
-args = vars(args)
+    if args['index_forward'] != None:
+        with open(args['index_forward'],'r') as f:
+            f_ref = [line.rstrip() for line in f]
+    else:
+        f_ref = ['TATAGCCT','ATAGAGGC','CCTATCCT','GGCTCTGA','AGGCGAAG','TAATCTTA','CAGGACGT','GTACTGAC']
 
-if args['index_forward'] != None:
-    with open(args['index_forward'],'r') as f:
-        f_ref = [line.rstrip() for line in f]
-else:
-    f_ref = ['TATAGCCT','ATAGAGGC','CCTATCCT','GGCTCTGA','AGGCGAAG','TAATCTTA','CAGGACGT','GTACTGAC']
+    if args['index_reverse'] != None:
+        with open(args['index_reverse'],'r') as f:
+            r_ref = [line.rstrip() for line in f]
+    else:
+        r_ref = ['CGAGTAAT','TCTCCGGA','AATGAGCG','GGAATCTC','TTCTGAAT','ACGAATTC','AGCTTCAG','GCGCATTA','CATAGCCG','TTCGCGGA',
+                'GCGCGAGA','CTATCGCT']
 
-if args['index_reverse'] != None:
-    with open(args['index_reverse'],'r') as f:
-        r_ref = [line.rstrip() for line in f]
-else:
-    r_ref = ['CGAGTAAT','TCTCCGGA','AATGAGCG','GGAATCTC','TTCTGAAT','ACGAATTC','AGCTTCAG','GCGCATTA','CATAGCCG','TTCGCGGA',
-            'GCGCGAGA','CTATCGCT']
+    if args['start_forward'] != None:
+        start_forward = int(args['start_forward'])
+    else:
+        start_forward = 21
+    if args['start_reverse'] != None:
+        start_reverse = int(args['start_reverse'])
+    else:
+        start_reverse = 27
 
-if args['start_forward'] != None:
-    start_forward = int(args['start_forward'])
-else:
-    start_forward = 21
-if args['start_reverse'] != None:
-    start_reverse = int(args['start_reverse'])
-else:
-    start_reverse = 27
+    if args['thresh_forward'] != None:
+        thresh_forward = int(args['thresh_forward'])
+    else:
+        thresh_forward = 2
+    if args['thresh_reverse'] != None:
+        thresh_reverse = int(args['thresh_reverse'])
+    else:
+        thresh_reverse = 2
 
-if args['thresh_forward'] != None:
-    thresh_forward = int(args['thresh_forward'])
-else:
-    thresh_forward = 2
-if args['thresh_reverse'] != None:
-    thresh_reverse = int(args['thresh_reverse'])
-else:
-    thresh_reverse = 2
+    if args['range'] != None:
+        start_forward = int(args['range'])
+    else:
+        start_forward = 1
 
-if args['range'] != None:
-    start_forward = int(args['range'])
-else:
-    start_forward = 1
-
-Separate_itChip(args['out_prefix'],args['outfolder'],args['f_filename'],args['r_filename'],f_ref,r_ref,start_forward,start_reverse,thresh_forward,thresh_reverse)
+    Separate_itChip(args['out_prefix'],args['outfolder'],args['f_filename'],args['r_filename'],f_ref,r_ref,start_forward,start_reverse,thresh_forward,thresh_reverse)
